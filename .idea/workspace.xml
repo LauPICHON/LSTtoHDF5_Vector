@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="8f4e4eb1-84eb-4252-aee2-094af83185e3" name="Default Changelist" comment="" />
+    <list default="true" id="8f4e4eb1-84eb-4252-aee2-094af83185e3" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -11,6 +14,7 @@
     <favorites_list name="LST2HDF5_vector" />
   </component>
   <component name="Git.Settings">
+    <option name="PREVIEW_PUSH_PROTECTED_ONLY" value="true" />
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="ProjectId" id="2kbcJisRghSFnIbWLJe7RVWWKbc" />
@@ -23,7 +27,7 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+    <property name="settings.editor.selected.configurable" value="project.propVCSSupport.CommitDialog" />
   </component>
   <component name="ServiceViewManager">
     <option name="viewStates">
@@ -55,7 +59,14 @@
       <option name="project" value="LOCAL" />
       <updated>1723556926269</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Push Config Pycharm">
+      <created>1723557085840</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1723557085840</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="Vcs.Log.History.Properties">
@@ -76,21 +87,22 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Test commit depuis Pycharm" />
-    <option name="LAST_COMMIT_MESSAGE" value="Test commit depuis Pycharm" />
+    <MESSAGE value="Push Config Pycharm" />
+    <option name="LAST_COMMIT_MESSAGE" value="Push Config Pycharm" />
   </component>
   <component name="WindowStateProjectService">
     <state x="361" y="66" key="#Notifications" timestamp="1723556744734">
       <screen x="0" y="0" width="1536" height="816" />
     </state>
     <state x="361" y="66" key="#Notifications/0.0.1536.816@0.0.1536.816" timestamp="1723556744734" />
-    <state x="223" y="63" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1723556559429">
+    <state x="223" y="63" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1723557552604">
       <screen x="0" y="0" width="1536" height="816" />
     </state>
-    <state x="223" y="63" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1536.816@0.0.1536.816" timestamp="1723556559429" />
-    <state x="424" y="2" key="CommitChangelistDialog2" timestamp="1723557008783">
+    <state x="223" y="63" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1536.816@0.0.1536.816" timestamp="1723557552604" />
+    <state x="424" y="2" key="CommitChangelistDialog2" timestamp="1723557744654">
       <screen x="0" y="0" width="1536" height="816" />
     </state>
-    <state x="424" y="2" key="CommitChangelistDialog2/0.0.1536.816@0.0.1536.816" timestamp="1723557008783" />
+    <state x="424" y="2" key="CommitChangelistDialog2/0.0.1536.816@0.0.1536.816" timestamp="1723557744654" />
     <state x="93" y="93" width="1350" height="630" key="DiffContextDialog" timestamp="1723556884482">
       <screen x="0" y="0" width="1536" height="816" />
     </state>
@@ -103,13 +115,17 @@
       <screen x="0" y="0" width="1536" height="816" />
     </state>
     <state x="580" y="119" key="RollbackChangesDialog/0.0.1536.816@0.0.1536.816" timestamp="1723556574314" />
-    <state x="279" y="53" key="SettingsEditor" timestamp="1723556487021">
+    <state x="279" y="53" key="SettingsEditor" timestamp="1723557512611">
       <screen x="0" y="0" width="1536" height="816" />
     </state>
-    <state x="279" y="53" key="SettingsEditor/0.0.1536.816@0.0.1536.816" timestamp="1723556487021" />
+    <state x="279" y="53" key="SettingsEditor/0.0.1536.816@0.0.1536.816" timestamp="1723557512611" />
     <state x="93" y="93" width="1350" height="630" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1723556884482">
       <screen x="0" y="0" width="1536" height="816" />
     </state>
     <state x="93" y="93" width="1350" height="630" key="com.intellij.history.integration.ui.views.FileHistoryDialog/0.0.1536.816@0.0.1536.816" timestamp="1723556884482" />
+    <state x="431" y="137" width="672" height="678" key="search.everywhere.popup" timestamp="1723557541232">
+      <screen x="0" y="0" width="1536" height="816" />
+    </state>
+    <state x="431" y="137" width="672" height="678" key="search.everywhere.popup/0.0.1536.816@0.0.1536.816" timestamp="1723557541232" />
   </component>
 </project>
