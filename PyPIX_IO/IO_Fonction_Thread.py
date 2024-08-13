@@ -884,6 +884,7 @@ class AGLAEFile(object):
         indice_last = indice_y_last[0][-1] - 1
         return indice_last
 
+# Function d'extraction du fichier LST avec vectorisation 
     def extract_lst_vector(path, detector, path_lst, para):
         pathlst1 = path
         tmpheader = ""
