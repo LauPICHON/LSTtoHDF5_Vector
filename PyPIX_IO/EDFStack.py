@@ -30,10 +30,10 @@ __author__ = "V.A. Sole - ESRF Data Analysis"
 __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-from . import DataObject
-from . import EdfFile
-from . import EdfFileDataSource
-from . import PhysicalMemory
+from PyPIX_IO import DataObject
+from PyPIX_IO import EdfFile
+from PyPIX_IO import EdfFileDataSource
+from PyPIX_IO import PhysicalMemory
 
 #from PyMca5.PyMcaCore import EdfFileDataSource
 #from PyMca5.PyMcaMisc import PhysicalMemory

@@ -2,7 +2,7 @@ import h5py, re
 import numpy as np
 import sys, os
 from PyQt5.QtCore import  QThread, pyqtSignal
-from . import EdfFile, EDFStack , ArraySave, EdfFileDataSource,DataObject,PhysicalMemory
+#import EdfFile, EDFStack , ArraySave, EdfFileDataSource,DataObject,PhysicalMemory
 import threading
 from datetime import datetime
 from time import perf_counter
@@ -679,11 +679,11 @@ class AGLAEFile(object):
         data_array = np.append(data_array_previous, data_array)
         min_last_pos_x_y_in_array = np.shape(data_array)
         shape_data_array = int(min_last_pos_x_y_in_array[0])
-        # Recherche de la valeur 0x8000 (32768) dans le tableau de données
+        # Recherche de la valeur 0x8000 (32768) dans le tableau de donnees
         indices_32768 = np.where(data_array == 32768)
         indices_32768 = np.array(indices_32768[0])
         indices_32768 = np.delete(indices_32768, len(indices_32768) - 1)
-        # Création d'indices ajustés et filtrage
+        # Crï¿½ation d'indices ajustï¿½s et filtrage
         one_array = np.full(np.shape(indices_32768), 1)
         adjusted_indices = indices_32768 - one_array
         return adjusted_indices, data_array ,shape_data_array
@@ -692,7 +692,7 @@ class AGLAEFile(object):
         """
         Retourne l'indice
         """
-        # Opérations bitwise et filtrage des indices
+        # Opï¿½rations bitwise et filtrage des indices
         adc_masked = np.bitwise_and(adc_values[:], 0b0000000000000001 << num_line_adc)
         coord_X_masket = np.bitwise_and(adc_values[:], 0b0000000000000001 << 8)
         coord_Y_masket = np.bitwise_and(adc_values[:], 0b0000000000000001 << 9)
@@ -768,7 +768,7 @@ class AGLAEFile(object):
 
         return max_val_y_lue,min_val_y_lue
 
-    def read_max_x(coord_x,croissant,previous_last_x):
+    def read_max_x(coord_x,croissant):
 
         last_pos_x = np.empty(0, dtype=np.uint16)
         first_pos_x = np.empty(0, dtype=np.uint16)
@@ -780,70 +780,131 @@ class AGLAEFile(object):
         for pos in range(r1):
             if croissant == True:
                 last_pos_x = np.append(last_pos_x, coord_x[-pos-1])  # A partir de la fin
-                first_pos_x = np.append(first_pos_x, coord_x[pos])  # A partir du début
+                first_pos_x = np.append(first_pos_x, coord_x[pos])  # A partir du dï¿½but
             else:
-                last_pos_x = np.append(last_pos_x, coord_x[pos])  # A partir du début
+                last_pos_x = np.append(last_pos_x, coord_x[pos])  # A partir du dï¿½but
                 first_pos_x = np.append(first_pos_x, coord_x[-pos-1])  # A partir de la fin
 
         last_pos_x = np.delete(last_pos_x, 0)
         count_x = np.bincount(last_pos_x)
-        last_x = int(np.shape(count_x)[0]) - 1 # On enleve la dernière colonne
+        last_x_value = int(np.shape(count_x)[0]) - 1 # On enleve la derniï¿½re colonne
 
-        try:
-            count_x_min = np.bincount(first_pos_x)
-            first_x = np.where(count_x_min == max(count_x_min))
-            first_x_value = int(first_x[0])
+        
+        count_x_min = np.bincount(first_pos_x)
+        first_x = np.where(count_x_min == max(count_x_min))
+        first_x_value = int(first_x[0])
+        
+        # if croissant == True:
+        #     last_x_value = last_x - 1  # int(last_x[0]) - 1
+        # else:
+        #     if last_x != 0:
+        #         last_x_value = first_x_value  # int(last_x[0]) + 1
+        #     else:
+        #         last_x_value = 0  # fin de la ligne de retour
 
-            if croissant == True:
-                last_x_value = last_x - 1  # int(last_x[0]) - 1
-            else:
-                if last_x != 0:
-                    last_x_value = first_x_value  # int(last_x[0]) + 1
-                else:
-                    last_x_value = 0  # fin de la ligne de retour
-
-
-
-            indice_x_max = np.where(coord_x == last_x_value)
-
-            if int(previous_last_x) != 0:
-                if croissant == True:
-                    indice_x_prev = np.where(coord_x == previous_last_x + 1)  # recherche la colonne N+1 suivant dans ligne croissants
-                    indice_x_prev1 = indice_x_prev[0][0]
-
-                else:
-                    indice_x_prev = np.where(coord_x == previous_last_x)  # recherche la colonne suivant dans ligne décroissantes
-                    ind_fin = 0
-                    indice_x_prev1 = indice_x_prev[0][-1]
-                    ind1 = np.array(indice_x_prev[0])
-                    find = False
-                    while find == False:
-                        ind_fin_0 = -1 - ind_fin
-                        #ind_fin_1 = -1 - (ind_fin+1)
-                        if coord_x[ind1[ind_fin_0]] == previous_last_x and coord_x[ind1[ind_fin_0]-1] == previous_last_x: # Ignore valeur X isolé
-                            indice_x_prev1 = indice_x_prev[0][-1-ind_fin]
-                            find = True
-                        else:
-                            ind_fin += 1
+        return first_x_value, last_x_value
 
 
-            else:
-                indice_x_prev1 = 0
+            # indice_x_max = np.where(coord_x == last_x_value)
 
-            if len(indice_x_max) == 0:
-                return 0,0,0
-            indice_x_last = indice_x_max[0][-1]
+            # if int(previous_last_x) != 0:
+            #     if croissant == True:
+            #         indice_x_prev = np.where(coord_x == previous_last_x + 1)  # recherche la colonne N+1 suivant dans ligne croissants
+            #         indice_x_prev1 = indice_x_prev[0][0]
+
+            #     else:
+            #         indice_x_prev = np.where(coord_x == previous_last_x)  # recherche la colonne suivant dans ligne dï¿½croissantes
+            #         ind_fin = 0
+            #         indice_x_prev1 = indice_x_prev[0][-1]
+            #         ind1 = np.array(indice_x_prev[0])
+            #         find = False
+            #         while find == False:
+            #             ind_fin_0 = -1 - ind_fin
+            #             #ind_fin_1 = -1 - (ind_fin+1)
+            #             if coord_x[ind1[ind_fin_0]] == previous_last_x and coord_x[ind1[ind_fin_0]-1] == previous_last_x: # Ignore valeur X isolï¿½
+            #                 indice_x_prev1 = indice_x_prev[0][-1-ind_fin]
+            #                 find = True
+            #             else:
+            #                 ind_fin += 1
+
+
+            # else:
+            #     indice_x_prev1 = 0
+
+            # if len(indice_x_max) == 0:
+            #     return 0,0,0
+            # indice_x_last = indice_x_max[0][-1]
 
         #    return indice_x_prev1, indice_x_last, last_x_value ,first_x_value
-        except:
-            indice_x_prev1 = 0
-            indice_x_last = len(coord_x)-1
-            last_x_value = previous_last_x
-            first_x_value = 0
+        # except:
+        #     indice_x_prev1 = 0
+        #     indice_x_last = len(coord_x)-1
+        #     last_x_value = previous_last_x
+        #     first_x_value = 0
 
-        return indice_x_prev1, indice_x_last, last_x_value, first_x_value
+        # return indice_x_prev1, indice_x_last, last_x_value, first_x_value
+
+    def read_indice_max_x(sizeX,coord_x,croissant,find_x,previous_x):
+            indice_x_max = np.where(coord_x == find_x)
+            if int(previous_x) != 0 and croissant == True:
+                previous_x = previous_x +1
+            elif int(previous_x)!=sizeX-1 and croissant == False:
+                previous_x = previous_x -1
+
+            # if croissant == True:
+
+            indice_x_prev = np.where(coord_x == previous_x)  # recherche la colonne N+1 suivant dans ligne croissants
+            try:
+                indice_x_prev1 = indice_x_prev[0][0]
+            except:
+                indice_x_prev1 = indice_x_prev[0]
+            if croissant == True:
+                indice_x_last = indice_x_max[0][-1]
+            else:
+                indice_x_last = indice_x_max[0][0]
+
+            # else:
+            #     if croissant==True:
+            #         indice_x_prev = np.where(coord_x == find_x)  # recherche la colonne N+1 suivant dans ligne croissants
+            #     else:
+            #         indice_x_prev = np.where(coord_x == previous_x)  # recherche la colonne N-1 suivant dans ligne dÃ©croissants
+                    
+            #     indice_x_prev1 = indice_x_prev[0][0]
+            #     indice_x_max = np.where(coord_x == find_x)
+            #     indice_x_last = indice_x_max[0][0]
+                    # indice_x_prev = np.where(coord_x == previous_last_x)  # recherche la colonne suivant dans ligne dï¿½croissantes
+                    # ind_fin = 0
+                    # indice_x_prev1 = indice_x_prev[0][-1]
+                    # ind1 = np.array(indice_x_prev[0])
+                    # find = False
+                    # while find == False:
+                    #     ind_fin_0 = -1 - ind_fin
+                    #     #ind_fin_1 = -1 - (ind_fin+1)
+                    #     if coord_x[ind1[ind_fin_0]] == previous_last_x and coord_x[ind1[ind_fin_0]-1] == previous_last_x: # Ignore valeur X isolï¿½
+                    #         indice_x_prev1 = indice_x_prev[0][-1-ind_fin]
+                    #         find = True
+                    #     else:
+                    #         ind_fin += 1
 
 
+            # else:
+            #     indice_x_prev1 = 0
+            #     indice_x_last = indice_x_max[0][-1]
+
+            # if len(indice_x_max) == 0:
+            #     return 0,0,0
+           
+            return indice_x_prev1, indice_x_last
+
+        #    return indice_x_prev1, indice_x_last, last_x_value ,first_x_value
+        # except:
+        #     indice_x_prev1 = 0
+        #     indice_x_last = len(coord_x)-1
+        #     last_x_value = previous_last_x
+        #     first_x_value = 0
+
+    
+    
     def read_min_x(coord_x, croissant, previous_last_x):
 
         last_pos_x = np.empty(0, dtype=np.uint16)
@@ -852,16 +913,16 @@ class AGLAEFile(object):
 
             if croissant == True:
                 last_pos_x = np.append(last_pos_x, coord_x[-pos-1])  # A partir de la fin
-                first_pos_x = np.append(first_pos_x, coord_x[pos])  # A partir du début
+                first_pos_x = np.append(first_pos_x, coord_x[pos])  # A partir du dï¿½but
             else:
-                last_pos_x = np.append(last_pos_x, coord_x[pos])  # A partir du début
+                last_pos_x = np.append(last_pos_x, coord_x[pos])  # A partir du dï¿½but
                 first_pos_x = np.append(first_pos_x, coord_x[-pos-1])  # A partir de la fin
 
 
 
         last_pos_x = np.delete(last_pos_x, 0)
         count_x = np.bincount(last_pos_x)
-        last_x = int(np.shape(count_x)[0]) - 1  # On enleve la dernière colonne
+        last_x = int(np.shape(count_x)[0]) - 1  # On enleve la derniï¿½re colonne
         if len(first_pos_x) == 0:
             count_x_min = 0
         else:
@@ -1063,7 +1124,7 @@ class AGLAEFile(object):
                         coord_y = coord_y & max_size_y  # 2047 #sizeY - 1
 
                         # sup_max_sizex = np.where(coord_x > sizeX - 1)
-                        # Met des -1 aux coord X et Y supérieur à la valeur de la carto
+                        # Met des -1 aux coord X et Y supï¿½rieur ï¿½ la valeur de la carto
                         out_range_x = np.where(coord_x > sizeX - 1)
                         coord_x = np.delete(coord_x, out_range_x)
                         coord_y = np.delete(coord_y, out_range_x)
@@ -1077,15 +1138,23 @@ class AGLAEFile(object):
                         print("Y:", max_val_y_lue)
                         if max_val_y_lue==29:
                             max_val_y_lue = max_val_y_lue
-                        last_x_value = AGLAEFile.read_min_x(coord_x,croissant,1)
+                        #last_x_value = AGLAEFile.read_min_x(coord_x,croissant,1)
+                        first_x_value, last_x_value = AGLAEFile.read_max_x(coord_x, croissant)
+
+                        # if croissant==False: #inverse last et first X value
+                        #     a1 = last_x_value
+                        #     last_x_value = first_x_value
+                        #     first_x_value = a1
 
                         if max_val_y_lue > y_scan_total or (max_val_y_lue==sizeY-1 and last_x_value == last_x_maps ):  # Contient le scan suivant
-                            if croissant == True:
-                                last_x_value = sizeX - 1
-                            else:
-                                last_x_value = 0
+                            #indice_x_prev1, indice_last, last_x_value,first_x_value = AGLAEFile.read_max_x(coord_x, croissant, last_x_value_prev[num_line_adc])
+                         #   first_x_value, last_x_value = AGLAEFile.read_max_x(coord_x, croissant)
+                            if last_x_value < first_x_value and croissant==True:
+                                last_x_value = sizeX-1
 
-                            indice_last = AGLAEFile.read_max_indice_change_colonne(coord_y,y_scan_total)
+                            indice_x_prev1, indice_last = AGLAEFile.read_indice_max_x(sizeX,coord_x,croissant,last_x_value,last_x_value_prev[num_line_adc])
+                          
+                            indice_last = AGLAEFile.read_max_indice_change_colonne(coord_y,y_scan_total) #REcherche last_indice avec Y < scan total
                             fin_ligne = True
                             coord_x = coord_x[:indice_last]
                             coord_y = coord_y[:indice_last]
@@ -1098,9 +1167,33 @@ class AGLAEFile(object):
 
                             if end_extract == False:
                                 ########################## RECUPERE INDICE VAL PREVIOUS et ACTUAL
-                                indice_x_prev1, indice_last, last_x_value,first_x_value = AGLAEFile.read_max_x(coord_x, croissant, last_x_value_prev[num_line_adc])
+                                #indice_x_prev1, indice_last, last_x_value,first_x_value = AGLAEFile.read_max_x(coord_x, croissant, last_x_value_prev[num_line_adc])
+                                # first_x_value, last_x_value = AGLAEFile.read_max_x(coord_x, croissant)
+                                # indice_x_prev1, indice_last = AGLAEFile.read_indice_max_x(coord_x,first_x_value,last_x_value)
+                            
+                            #    first_x_value, last_x_value = AGLAEFile.read_max_x(coord_x, croissant)
+                                #indice_x_prev1, indice_last = AGLAEFile.read_indice_max_x(coord_x,croissant,last_x_value-1,last_x_value_prev[num_line_adc])
+                                if croissant== True:
+                                    columns = last_x_value -1 > first_x_value
+                                    find_x =last_x_value
+                                    if columns==True: find_x -=1 # recherche X -1
+                                else:
+                                    columns = first_x_value +1 < last_x_value
+                                    find_x = first_x_value
+                                    
+                                    if columns==True: 
+                                    #     find_x +=1 # recherche X +1
+                                         first_x_value +=1
 
-                                print("X:", last_x_value)
+                                if columns == True: # plus de 1 colonne
+                                    indice_x_prev1,indice_last = AGLAEFile.read_indice_max_x(sizeX,coord_x,croissant,find_x,last_x_value_prev[num_line_adc])
+                                else:
+                                    indice_last,indice_x_prev1 = AGLAEFile.read_indice_max_x(sizeX,coord_x,croissant,find_x,last_x_value_prev[num_line_adc])
+                            
+                                
+                                print("X:", last_x_value-1)
+                                if last_x_value == 11:
+                                    last_x_value = last_x_value
                                 max_data_array = indice_val_to_read[8, indice_last]
                                 coord_x = coord_x[indice_x_prev1:indice_last]
                                 coord_y = coord_y[indice_x_prev1:indice_last]
@@ -1111,7 +1204,10 @@ class AGLAEFile(object):
 
                             else: # Fin du fichier on mets les bornes max pour X
                                 if croissant == True:
-                                    last_x_value = sizeX - 1
+                                    # indice_x_prev1, indice_last, last_x_value,first_x_value = AGLAEFile.read_max_x(coord_x, croissant, last_x_value_prev[num_line_adc])
+                                    #last_x_value = sizeX - 1
+                                    #first_x_value = last_x_value
+                                    first_x_value, last_x_value = AGLAEFile.read_max_x(coord_x, croissant)
                                 else:
                                     last_x_value = 0
 
@@ -1131,23 +1227,28 @@ class AGLAEFile(object):
                         new_coord_x = coord_x [non_zero_indices]
                         new_coord_y = coord_y [non_zero_indices]
 
-                        if croissant == True: # Valeurs X croissantes
+                        # if croissant == True: # Valeurs X croissantes
 
-                            if last_x_value == first_x_value:
-                                range_histo = 1
-                            else:
-                                #range_histo = int(last_x_value - last_x_value_prev[num_line_adc])
-                                range_histo = int(last_x_value - first_x_value)
+                        #     if last_x_value - 1 == first_x_value:
+                        #         range_histo = 1
+                        #     else:
+                        #         #range_histo = int(last_x_value - last_x_value_prev[num_line_adc])
+                        #         range_histo = int(last_x_value - first_x_value)
 
-                             # if int(last_x_value_prev[num_line_adc]) == 0:  # Pour la ligne 0
-                             #     range_histo += 1
-                            # if int(last_x_value_prev[num_line_adc]) != 0 and int(last_x_value_prev[num_line_adc]) !=sizeX-1:
-                            #     last_x_value_prev[num_line_adc] += 1  # ajoute +1 a la valeur précédente
+                        #      # if int(last_x_value_prev[num_line_adc]) == 0:  # Pour la ligne 0
+                        #      #     range_histo += 1
+                        #     # if int(last_x_value_prev[num_line_adc]) != 0 and int(last_x_value_prev[num_line_adc]) !=sizeX-1:
+                        #     #     last_x_value_prev[num_line_adc] += 1  # ajoute +1 a la valeur precedente
 
-                        else:# Valeur X décroissantes
-                            range_histo = int(last_x_value_prev[num_line_adc] - last_x_value)
-                            if int(last_x_value_prev[num_line_adc]) == 0 and last_x_value ==0: # Colonne 0
-                                range_histo =1
+                        # else:# Valeur X decroissantes
+                        #     #range_histo = int(last_x_value_prev[num_line_adc] - last_x_value)
+                        #     if last_x_value - 1 == first_x_value:
+                        #         range_histo = 1
+                        #     else:
+                        #         range_histo = int(last_x_value - first_x_value)
+                            
+                        #     if int(last_x_value_prev[num_line_adc]) == 0 and last_x_value ==0: # Colonne 0
+                        #         range_histo =1
 
 
 
@@ -1158,24 +1259,23 @@ class AGLAEFile(object):
                         #continue
                         #print(f'range_histo : {range_histo}')
 
-                        if range_histo < 0:
-                            pass
-                            print(f'range_histo : {range_histo}')
+                        
 
-                        if range_histo == 1:
-                            range_histo = 1
-                        p1 = first_x_value #int(last_x_value_prev[num_line_adc]) + 1
-                        p2 = last_x_value
+                        # if range_histo == 1:
+                        #     range_histo = 1
+                        # 
+                        p1 = first_x_value
+                        
+                        if last_x_value == sizeX-1:
+                            p2 = last_x_value # Je prend la dernier column en compte dans mon histogramme
+                        else:
+                            p2 = last_x_value -1
 
                         if croissant == True:
                             adc3 =adc1[0]
                             del adc1
-
-                            # if int(last_x_value_prev[num_line_adc]) != 0 and (int(last_x_value_prev[num_line_adc]) != last_x_value):
-                            #     r1 = [p1, p2]
-                            #     range_histo = (p2 - p1) + 1
-
-                            if first_x_value == last_x_value: # Une seule Ligne la Ligne 0
+                          
+                            if first_x_value == last_x_value - 1 and fin_ligne == False: # Une seule column dans le dataArray
                                 range_histo = range_histo
                             else:
                                 r1 = [p1, p2]
@@ -1192,11 +1292,11 @@ class AGLAEFile(object):
                             del adc1
 
                             if p1 == p2:
-                                r1=[p1,p2]
                                 range_histo = 1
                             else:
-                                r1 = [p2, p1]
-                                range_histo = (p1 - p2)+1
+                                r1 = [p1, p2]
+                                range_histo = (p2 - p1) + 1
+                                #range_histo = int(last_x_value - first_x_value)
 
 
                         if range_histo==1:
@@ -1208,50 +1308,64 @@ class AGLAEFile(object):
                                                    bins=(nb_column, range_histo, nbcanaux))
                         # fig, ax = plt.subplots()
                         print(np.shape(H1))
-
+                        
                         # cube_one_pass= np.add((cube_one_pass,H1),axis=2)
                         if croissant == True:
-
-                            if num_line_adc <=4:
-                                if range_histo == 1:
-                                    cube_one_pass_pixe[num_line_adc ,:, last_x_value, :] = H1
-                                else:
-                                    cube_one_pass_pixe[num_line_adc][0:,first_x_value:last_x_value + 1, 0:] = H1
-
-                            elif num_line_adc == 6 or  num_line_adc == 7:
-                                if range_histo == 1:
-                                    cube_one_pass_rbs[num_line_adc - 6][0:, int(last_x_value_prev[num_line_adc]),0:] = H1
-                                else:
-                                    cube_one_pass_rbs[num_line_adc - 6][0:,first_x_value:last_x_value + 1, 0:] = H1
-
-                            elif num_line_adc == 10 or num_line_adc == 11:
-                                if range_histo == 1:
-                                    cube_one_pass_gamma[num_line_adc - 10][0:, int(last_x_value_prev[num_line_adc]),0:] = H1
-                                else:
-                                    cube_one_pass_gamma[num_line_adc - 10][0:,first_x_value:last_x_value + 1, 0:] = H1
-
-                            if range_histo == 1:
-                                last_x_value_prev[num_line_adc] = last_x_value #+1  # -last_x_value_prev[num_line_adc]
-                            else:
-                                last_x_value_prev[num_line_adc] = last_x_value
+                            if last_x_value == sizeX-1:
+                                last_x_value = last_x_value +1 # IncrÃ©ment de 1 pour la derniere column car H1 a une dimension +1
                         else:
-                           # plt.plot(H1[0, 0, :])
-                           # plt.show()
-                           if last_x_value != 0:
-                               last_x_value = last_x_value -1
-                           else:
-                               last_x_value = last_x_value
-                               last_x_value_prev[num_line_adc] = last_x_value_prev[num_line_adc] +1
-                           if num_line_adc <= 4:
-                                cube_one_pass_pixe[num_line_adc][0:, last_x_value:int(last_x_value_prev[num_line_adc]),
-                                0:] = H1
-                           elif num_line_adc == 6 or num_line_adc == 7:
-                               cube_one_pass_rbs[num_line_adc-6][0:, last_x_value:int(last_x_value_prev[num_line_adc]),
-                               0:] = H1
-                           elif num_line_adc == 10 or num_line_adc == 11:
-                               cube_one_pass_gamma[num_line_adc - 10][0:,last_x_value:int(last_x_value_prev[num_line_adc]),
-                               0:] = H1
-                           last_x_value_prev[num_line_adc] = first_x_value
+                            if last_x_value == 0 or last_x_value == sizeX-1:
+                                last_x_value = last_x_value +1
+
+
+                        if num_line_adc <=4:
+                            if range_histo == 1:
+                                cube_one_pass_pixe[num_line_adc ,:, first_x_value, :] = H1
+                            else:
+                                cube_one_pass_pixe[num_line_adc][0:,first_x_value:last_x_value, 0:] = H1
+
+                        elif num_line_adc == 6 or  num_line_adc == 7:
+                            if range_histo == 1:
+                                cube_one_pass_rbs[num_line_adc - 6][0:, int(last_x_value_prev[num_line_adc]),0:] = H1
+                            else:
+                                cube_one_pass_rbs[num_line_adc - 6][0:,first_x_value:last_x_value, 0:] = H1
+
+                        elif num_line_adc == 10 or num_line_adc == 11:
+                            if range_histo == 1:
+                                cube_one_pass_gamma[num_line_adc - 10][0:, int(last_x_value_prev[num_line_adc]),0:] = H1
+                            else:
+                                cube_one_pass_gamma[num_line_adc - 10][0:,first_x_value:last_x_value, 0:] = H1
+
+                        if range_histo == 1:
+                            if croissant == True:
+                                last_x_value_prev[num_line_adc] = first_x_value #+1  # -last_x_value_prev[num_line_adc]
+                            else:
+                                last_x_value_prev[num_line_adc] = first_x_value     
+                        else:
+                            if croissant == True:
+                                last_x_value_prev[num_line_adc] = last_x_value-1
+                            else:
+                                last_x_value_prev[num_line_adc] = first_x_value
+
+                        # else:
+                        #    # plt.plot(H1[0, 0, :])
+                        #    # plt.show()
+                        #    if last_x_value != 0:
+                        #        last_x_value = last_x_value -1
+                        #    else:
+                        #        last_x_value = last_x_value
+                        #        last_x_value_prev[num_line_adc] = last_x_value_prev[num_line_adc] +1
+
+                        #    if num_line_adc <= 4:
+                        #         cube_one_pass_pixe[num_line_adc][0:, last_x_value:int(last_x_value_prev[num_line_adc]),
+                        #         0:] = H1
+                        #    elif num_line_adc == 6 or num_line_adc == 7:
+                        #        cube_one_pass_rbs[num_line_adc-6][0:, last_x_value:int(last_x_value_prev[num_line_adc]),
+                        #        0:] = H1
+                        #    elif num_line_adc == 10 or num_line_adc == 11:
+                        #        cube_one_pass_gamma[num_line_adc - 10][0:,last_x_value:int(last_x_value_prev[num_line_adc]),
+                        #        0:] = H1
+                        #    last_x_value_prev[num_line_adc] = first_x_value
 
 
 

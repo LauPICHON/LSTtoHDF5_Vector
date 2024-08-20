@@ -30,8 +30,8 @@ __author__ = "V.A. Sole - ESRF Data Analysis"
 __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-from . import DataObject
-from . import EdfFile
+from PyPIX_IO import DataObject
+from PyPIX_IO import EdfFile
 import types
 import sys
 import os

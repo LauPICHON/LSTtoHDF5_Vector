@@ -14,11 +14,10 @@ from Hdf5Utils import *
 
 import matplotlib.pyplot as plt
 
-from PyPIX_IO import DataObject
-from PyPIX_IO import EdfFile
+from PyPIX_IO import DataObject,EdfFile,EdfFileDataSource,EDFStack
+""" from PyPIX_IO import EdfFile
 from PyPIX_IO import EdfFileDataSource
-from PyPIX_IO import EDFStack
-
+from PyPIX_IO import EDFStack """
 
 
 def foo(bar, baz):
