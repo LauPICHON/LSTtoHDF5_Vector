@@ -844,20 +844,27 @@ class AGLAEFile(object):
 
         # return indice_x_prev1, indice_x_last, last_x_value, first_x_value
 
-    def read_indice_max_x(sizeX,coord_x,croissant,find_x,previous_x):
+    def read_indice_max_x(sizeX,coord_x,croissant,find_x):
             indice_x_max = np.where(coord_x == find_x)
-            if int(previous_x) != 0 and croissant == True:
-                previous_x = previous_x +1
-            elif int(previous_x)!=sizeX-1 and croissant == False:
-                previous_x = previous_x -1
+            # if int(previous_x) == 0 and croissant == True:
+            #     previous_x = previous_x +1
+            # elif int(previous_x) !=sizeX-1 and croissant == False:
+            #     previous_x = previous_x - 1
 
             # if croissant == True:
 
-            indice_x_prev = np.where(coord_x == previous_x)  # recherche la colonne N+1 suivant dans ligne croissants
-            try:
-                indice_x_prev1 = indice_x_prev[0][0]
-            except:
-                indice_x_prev1 = indice_x_prev[0]
+            # indice_x_prev = np.where(coord_x == previous_x)  # recherche la colonne N+1 suivant dans ligne croissants
+            # try:
+            #     if croissant == True or int(previous_x) == sizeX-1:
+            #         indice_x_prev1 = indice_x_prev[0][0]
+            #     else:
+            #         indice_x_prev1 = indice_x_prev[0][0]
+            # except:
+            #     if croissant == True:
+            #         indice_x_prev1 = indice_x_prev[0]
+            #     else:
+            #         indice_x_prev1 = indice_x_prev[-1]
+
             if croissant == True:
                 indice_x_last = indice_x_max[0][-1]
             else:
@@ -894,7 +901,7 @@ class AGLAEFile(object):
             # if len(indice_x_max) == 0:
             #     return 0,0,0
            
-            return indice_x_prev1, indice_x_last
+            return indice_x_last
 
         #    return indice_x_prev1, indice_x_last, last_x_value ,first_x_value
         # except:
@@ -938,11 +945,11 @@ class AGLAEFile(object):
 
     def read_max_indice_change_colonne(coord_y,y_scan_total):
         fin_ligne = False
-        indice_y_last = np.where(coord_y == y_scan_total)  # recherche les val de la dernier colonne
+        indice_y_last = np.where(coord_y > y_scan_total)  # recherche les val de la dernier colonne
         if len(indice_y_last[0]) < 50:
             fin_ligne = True
             indice_last = 0
-        indice_last = indice_y_last[0][-1] - 1
+        indice_last = indice_y_last[0][0] - 1
         return indice_last
 
 # Fonction d'extraction du fichier LST avec vectorisation
@@ -1057,11 +1064,11 @@ class AGLAEFile(object):
 
                 if (num_pass_y % 2 == 0):
                     croissant = True
-                    last_x_value_prev = np.zeros(12, dtype=np.uint16)
+                    next_x_value = np.zeros(12, dtype=np.uint16)
 
                 else:
                     croissant = False
-                    last_x_value_prev = np.full(12, sizeX - 1, dtype=np.uint16)
+                    next_x_value = np.full(12, sizeX - 1, dtype=np.uint16)
 
 
                 end_extract = False
@@ -1094,6 +1101,7 @@ class AGLAEFile(object):
                     t1 = perf_counter()
 
                     array_adc = [0,1,2,3,4,6,7,10,11]
+                    #array_adc = [0,4]
                     for num_line_adc in array_adc: #range(12):
                         if num_line_adc == 1 or num_line_adc == 8 or num_line_adc == 9 or num_line_adc == 5: continue
 
@@ -1128,11 +1136,9 @@ class AGLAEFile(object):
                         out_range_x = np.where(coord_x > sizeX - 1)
                         coord_x = np.delete(coord_x, out_range_x)
                         coord_y = np.delete(coord_y, out_range_x)
-
-
                         coord_x = np.where(coord_x <= sizeX - 1, coord_x, np.full(len(coord_x), 0))
                         coord_y = np.where(coord_y <= sizeY - 1, coord_y, np.full(len(coord_y), 0))
-
+                    
                         max_val_y_lue,min_val_y_lue = AGLAEFile.read_min_max_y(coord_y)
 
                         print("Y:", max_val_y_lue)
@@ -1145,16 +1151,34 @@ class AGLAEFile(object):
                         #     a1 = last_x_value
                         #     last_x_value = first_x_value
                         #     first_x_value = a1
+                        if croissant==True:
+                            val_x_fin_map = last_x_value
+                        else:
+                            val_x_fin_map = first_x_value
+                        
+                        if max_val_y_lue==sizeY-1 and val_x_fin_map == last_x_maps:
+                            fin_lst = True
+                        else: 
+                            fin_lst = False
 
-                        if max_val_y_lue > y_scan_total or (max_val_y_lue==sizeY-1 and last_x_value == last_x_maps ):  # Contient le scan suivant
-                            #indice_x_prev1, indice_last, last_x_value,first_x_value = AGLAEFile.read_max_x(coord_x, croissant, last_x_value_prev[num_line_adc])
+                        if max_val_y_lue > y_scan_total:
+                            if val_x_fin_map == last_x_maps or first_x_value > last_x_value :
+                                change_line= True
+                        else:
+                            change_line= False
+
+                        if change_line==True or fin_lst== True: #(max_val_y_lue==sizeY-1 and val_x_fin_map == last_x_maps ):  # Contient le scan suivant
+                            #indice_x_prev1, indice_last, last_x_value,first_x_value = AGLAEFile.read_max_x(coord_x, croissant, next_x_value[num_line_adc])
                          #   first_x_value, last_x_value = AGLAEFile.read_max_x(coord_x, croissant)
                             if last_x_value < first_x_value and croissant==True:
                                 last_x_value = sizeX-1
+                            
+                            if fin_lst==False:
+                                indice_last = AGLAEFile.read_indice_max_x(sizeX,coord_x,croissant,last_x_value)#,next_x_value[num_line_adc])
+                                indice_last = AGLAEFile.read_max_indice_change_colonne(coord_y,y_scan_total) #REcherche last_indice avec Y < scan total
+                            else:
+                                indice_last = len(coord_y) -1
 
-                            indice_x_prev1, indice_last = AGLAEFile.read_indice_max_x(sizeX,coord_x,croissant,last_x_value,last_x_value_prev[num_line_adc])
-                          
-                            indice_last = AGLAEFile.read_max_indice_change_colonne(coord_y,y_scan_total) #REcherche last_indice avec Y < scan total
                             fin_ligne = True
                             coord_x = coord_x[:indice_last]
                             coord_y = coord_y[:indice_last]
@@ -1167,15 +1191,15 @@ class AGLAEFile(object):
 
                             if end_extract == False:
                                 ########################## RECUPERE INDICE VAL PREVIOUS et ACTUAL
-                                #indice_x_prev1, indice_last, last_x_value,first_x_value = AGLAEFile.read_max_x(coord_x, croissant, last_x_value_prev[num_line_adc])
+                                #indice_x_prev1, indice_last, last_x_value,first_x_value = AGLAEFile.read_max_x(coord_x, croissant, next_x_value[num_line_adc])
                                 # first_x_value, last_x_value = AGLAEFile.read_max_x(coord_x, croissant)
                                 # indice_x_prev1, indice_last = AGLAEFile.read_indice_max_x(coord_x,first_x_value,last_x_value)
                             
                             #    first_x_value, last_x_value = AGLAEFile.read_max_x(coord_x, croissant)
-                                #indice_x_prev1, indice_last = AGLAEFile.read_indice_max_x(coord_x,croissant,last_x_value-1,last_x_value_prev[num_line_adc])
+                                #indice_x_prev1, indice_last = AGLAEFile.read_indice_max_x(coord_x,croissant,last_x_value-1,next_x_value[num_line_adc])
                                 if croissant== True:
                                     columns = last_x_value -1 > first_x_value
-                                    find_x =last_x_value
+                                    find_x = last_x_value
                                     if columns==True: find_x -=1 # recherche X -1
                                 else:
                                     columns = first_x_value +1 < last_x_value
@@ -1186,17 +1210,17 @@ class AGLAEFile(object):
                                          first_x_value +=1
 
                                 if columns == True: # plus de 1 colonne
-                                    indice_x_prev1,indice_last = AGLAEFile.read_indice_max_x(sizeX,coord_x,croissant,find_x,last_x_value_prev[num_line_adc])
+                                    indice_last = AGLAEFile.read_indice_max_x(sizeX,coord_x,croissant,find_x)#,next_x_value[num_line_adc])
                                 else:
-                                    indice_last,indice_x_prev1 = AGLAEFile.read_indice_max_x(sizeX,coord_x,croissant,find_x,last_x_value_prev[num_line_adc])
+                                    indice_last = AGLAEFile.read_indice_max_x(sizeX,coord_x,croissant,first_x_value)#,next_x_value[num_line_adc])
                             
                                 
                                 print("X:", last_x_value-1)
-                                if last_x_value == 11:
+                                if last_x_value == 37:
                                     last_x_value = last_x_value
                                 max_data_array = indice_val_to_read[8, indice_last]
-                                coord_x = coord_x[indice_x_prev1:indice_last]
-                                coord_y = coord_y[indice_x_prev1:indice_last]
+                                coord_x = coord_x[:indice_last]
+                                coord_y = coord_y[:indice_last]
 
                                 #if max_data_array < nb_byte_to_read and max_data_array > min_last_pos_x_y_in_array:
                                 if max_data_array > min_last_pos_x_y_in_array:
@@ -1204,7 +1228,7 @@ class AGLAEFile(object):
 
                             else: # Fin du fichier on mets les bornes max pour X
                                 if croissant == True:
-                                    # indice_x_prev1, indice_last, last_x_value,first_x_value = AGLAEFile.read_max_x(coord_x, croissant, last_x_value_prev[num_line_adc])
+                                    # indice_x_prev1, indice_last, last_x_value,first_x_value = AGLAEFile.read_max_x(coord_x, croissant, next_x_value[num_line_adc])
                                     #last_x_value = sizeX - 1
                                     #first_x_value = last_x_value
                                     first_x_value, last_x_value = AGLAEFile.read_max_x(coord_x, croissant)
@@ -1215,7 +1239,7 @@ class AGLAEFile(object):
                                 indice_x_last = len(coord_x)
 
 
-                        non_zero_indices = np.nonzero(indice_val_to_read[num_line_adc, indice_x_prev1:indice_last])
+                        non_zero_indices = np.nonzero(indice_val_to_read[num_line_adc, :indice_last])
                         if len(non_zero_indices[0]) < 2:  # pas de valeur pour cet adc dans ce Block de Data Array
                             continue
 
@@ -1232,22 +1256,22 @@ class AGLAEFile(object):
                         #     if last_x_value - 1 == first_x_value:
                         #         range_histo = 1
                         #     else:
-                        #         #range_histo = int(last_x_value - last_x_value_prev[num_line_adc])
+                        #         #range_histo = int(last_x_value - next_x_value[num_line_adc])
                         #         range_histo = int(last_x_value - first_x_value)
 
-                        #      # if int(last_x_value_prev[num_line_adc]) == 0:  # Pour la ligne 0
+                        #      # if int(next_x_value[num_line_adc]) == 0:  # Pour la ligne 0
                         #      #     range_histo += 1
-                        #     # if int(last_x_value_prev[num_line_adc]) != 0 and int(last_x_value_prev[num_line_adc]) !=sizeX-1:
-                        #     #     last_x_value_prev[num_line_adc] += 1  # ajoute +1 a la valeur precedente
+                        #     # if int(next_x_value[num_line_adc]) != 0 and int(next_x_value[num_line_adc]) !=sizeX-1:
+                        #     #     next_x_value[num_line_adc] += 1  # ajoute +1 a la valeur precedente
 
                         # else:# Valeur X decroissantes
-                        #     #range_histo = int(last_x_value_prev[num_line_adc] - last_x_value)
+                        #     #range_histo = int(next_x_value[num_line_adc] - last_x_value)
                         #     if last_x_value - 1 == first_x_value:
                         #         range_histo = 1
                         #     else:
                         #         range_histo = int(last_x_value - first_x_value)
                             
-                        #     if int(last_x_value_prev[num_line_adc]) == 0 and last_x_value ==0: # Colonne 0
+                        #     if int(next_x_value[num_line_adc]) == 0 and last_x_value ==0: # Colonne 0
                         #         range_histo =1
 
 
@@ -1256,11 +1280,7 @@ class AGLAEFile(object):
                             fin_ligne = True
                         elif croissant == False and last_x_value == 0:
                             fin_ligne = True
-                        #continue
-                        #print(f'range_histo : {range_histo}')
-
-                        
-
+                      
                         # if range_histo == 1:
                         #     range_histo = 1
                         # 
@@ -1268,19 +1288,20 @@ class AGLAEFile(object):
                         
                         if last_x_value == sizeX-1:
                             p2 = last_x_value # Je prend la dernier column en compte dans mon histogramme
+                        elif croissant == False:
+                            p2 = last_x_value
                         else:
                             p2 = last_x_value -1
 
                         if croissant == True:
                             adc3 =adc1[0]
                             del adc1
-                          
+                         
                             if first_x_value == last_x_value - 1 and fin_ligne == False: # Une seule column dans le dataArray
-                                range_histo = range_histo
+                                range_histo = 1
                             else:
                                 r1 = [p1, p2]
                                 range_histo = (p2 - p1) + 1
-
 
                         else:
                             new_coord_x = np.delete(new_coord_x, 0)
@@ -1298,7 +1319,8 @@ class AGLAEFile(object):
                                 range_histo = (p2 - p1) + 1
                                 #range_histo = int(last_x_value - first_x_value)
 
-
+                        if last_x_value == 10 and max_val_y_lue ==39:
+                            last_x_value = last_x_value
                         if range_histo==1:
                            H1, xedges, yedges= np.histogram2d(new_coord_y,adc3,bins=(nb_column,nbcanaux),range= ({0, nb_column-1},{0, nbcanaux-1}))
                            # H1, xedges = np.histogram(adc3, bins=nb_column)
@@ -1314,8 +1336,8 @@ class AGLAEFile(object):
                             if last_x_value == sizeX-1:
                                 last_x_value = last_x_value +1 # Incrément de 1 pour la derniere column car H1 a une dimension +1
                         else:
-                            if last_x_value == 0 or last_x_value == sizeX-1:
-                                last_x_value = last_x_value +1
+                            #if last_x_value == 0 or last_x_value == sizeX-1:
+                            last_x_value = last_x_value +1
 
 
                         if num_line_adc <=4:
@@ -1326,26 +1348,26 @@ class AGLAEFile(object):
 
                         elif num_line_adc == 6 or  num_line_adc == 7:
                             if range_histo == 1:
-                                cube_one_pass_rbs[num_line_adc - 6][0:, int(last_x_value_prev[num_line_adc]),0:] = H1
+                                cube_one_pass_rbs[num_line_adc - 6][0:, int(next_x_value[num_line_adc]),0:] = H1
                             else:
                                 cube_one_pass_rbs[num_line_adc - 6][0:,first_x_value:last_x_value, 0:] = H1
 
                         elif num_line_adc == 10 or num_line_adc == 11:
                             if range_histo == 1:
-                                cube_one_pass_gamma[num_line_adc - 10][0:, int(last_x_value_prev[num_line_adc]),0:] = H1
+                                cube_one_pass_gamma[num_line_adc - 10][0:, int(next_x_value[num_line_adc]),0:] = H1
                             else:
                                 cube_one_pass_gamma[num_line_adc - 10][0:,first_x_value:last_x_value, 0:] = H1
 
                         if range_histo == 1:
                             if croissant == True:
-                                last_x_value_prev[num_line_adc] = first_x_value #+1  # -last_x_value_prev[num_line_adc]
+                                next_x_value[num_line_adc] = first_x_value #+1  # -next_x_value[num_line_adc]
                             else:
-                                last_x_value_prev[num_line_adc] = first_x_value     
+                                next_x_value[num_line_adc] = first_x_value     
                         else:
                             if croissant == True:
-                                last_x_value_prev[num_line_adc] = last_x_value-1
+                                next_x_value[num_line_adc] = last_x_value
                             else:
-                                last_x_value_prev[num_line_adc] = first_x_value
+                                next_x_value[num_line_adc] = first_x_value
 
                         # else:
                         #    # plt.plot(H1[0, 0, :])
@@ -1354,18 +1376,18 @@ class AGLAEFile(object):
                         #        last_x_value = last_x_value -1
                         #    else:
                         #        last_x_value = last_x_value
-                        #        last_x_value_prev[num_line_adc] = last_x_value_prev[num_line_adc] +1
+                        #        next_x_value[num_line_adc] = next_x_value[num_line_adc] +1
 
                         #    if num_line_adc <= 4:
-                        #         cube_one_pass_pixe[num_line_adc][0:, last_x_value:int(last_x_value_prev[num_line_adc]),
+                        #         cube_one_pass_pixe[num_line_adc][0:, last_x_value:int(next_x_value[num_line_adc]),
                         #         0:] = H1
                         #    elif num_line_adc == 6 or num_line_adc == 7:
-                        #        cube_one_pass_rbs[num_line_adc-6][0:, last_x_value:int(last_x_value_prev[num_line_adc]),
+                        #        cube_one_pass_rbs[num_line_adc-6][0:, last_x_value:int(next_x_value[num_line_adc]),
                         #        0:] = H1
                         #    elif num_line_adc == 10 or num_line_adc == 11:
-                        #        cube_one_pass_gamma[num_line_adc - 10][0:,last_x_value:int(last_x_value_prev[num_line_adc]),
+                        #        cube_one_pass_gamma[num_line_adc - 10][0:,last_x_value:int(next_x_value[num_line_adc]),
                         #        0:] = H1
-                        #    last_x_value_prev[num_line_adc] = first_x_value
+                        #    next_x_value[num_line_adc] = first_x_value
 
 
 
