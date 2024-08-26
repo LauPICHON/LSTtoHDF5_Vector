@@ -39,9 +39,12 @@ class MainPage(QMainWindow):
 
     def __init__(self):
         super(MainPage, self).__init__()
-        loadUi('GUI_LSTToHDF5_2023.ui',self)
+        #loadUi('GUI_LSTToHDF5_2023.ui',self)
+        loadUi('GUI_LSTToHDF5_vector_2024.ui',self)
         self.button = self.findChild(QtWidgets.QPushButton, 'SelectFile')
         self.button.clicked.connect(self.select_lst)
+        self.button2 = self.findChild(QtWidgets.QPushButton, 'SelectFolder')
+        self.button2.clicked.connect(self.select_folder)
         self.input = self.findChild(QtWidgets.QLineEdit, 'input')
         self.filename_lst = self.findChild(QtWidgets.QTextEdit, 'textEdit_LST')
         self.txtparameter_lst = self.findChild(QtWidgets.QTextEdit, 'textEdit_paramater_lst')
@@ -50,17 +53,17 @@ class MainPage(QMainWindow):
         self.button1.clicked.connect(self.select_file)
         self.filename_edf = self.findChild(QtWidgets.QTextEdit, 'textEdit_EDF')
 
-        self.CheckBoxLE0.stateChanged.connect(self.Check_LE0)
-        self.CheckBoxHE1.stateChanged.connect(self.Check_HE1)
-        self.CheckBoxHE2.stateChanged.connect(self.Check_HE2)
-        self.CheckBoxHE3.stateChanged.connect(self.Check_HE3)
-        self.CheckBoxHE4.stateChanged.connect(self.Check_HE4)
-        self.CheckBoxHE10.stateChanged.connect(self.Check_HE10)
-        self.CheckBoxHE11.stateChanged.connect(self.Check_HE11)
-        self.CheckBoxHE12.stateChanged.connect(self.Check_HE12)
-        self.CheckBoxHE13.stateChanged.connect(self.Check_HE13)
-        self.CheckBoxRBS150.stateChanged.connect(self.Check_RBS150)
-        self.CheckBoxGAMMA70.stateChanged.connect(self.Check_GAMMA70)
+        # self.CheckBoxLE0.stateChanged.connect(self.Check_LE0)
+        # self.CheckBoxHE1.stateChanged.connect(self.Check_HE1)
+        # self.CheckBoxHE2.stateChanged.connect(self.Check_HE2)
+        # self.CheckBoxHE3.stateChanged.connect(self.Check_HE3)
+        # self.CheckBoxHE4.stateChanged.connect(self.Check_HE4)
+        # self.CheckBoxHE10.stateChanged.connect(self.Check_HE10)
+        # self.CheckBoxHE11.stateChanged.connect(self.Check_HE11)
+        # self.CheckBoxHE12.stateChanged.connect(self.Check_HE12)
+        # self.CheckBoxHE13.stateChanged.connect(self.Check_HE13)
+        # self.CheckBoxRBS150.stateChanged.connect(self.Check_RBS150)
+        # self.CheckBoxGAMMA70.stateChanged.connect(self.Check_GAMMA70)
         self.run1 = self.findChild(QtWidgets.QPushButton, 'pushButton_run')
         self.run1.clicked.connect(self.RunConvert)
         self.progress = self.findChild(QtWidgets.QProgressBar, 'progressBar')
@@ -83,6 +86,8 @@ class MainPage(QMainWindow):
         self.detlist=[]
         self.list_file_type_edf = []
         self.FinalEDF = "c:/toto.edf"
+        self.path_all_lst = "c:/"
+        self.all_lst_fileName = []
 
     def Check_LE0(self, int):
         if self.CheckBoxLE0.isChecked():
@@ -196,80 +201,58 @@ class MainPage(QMainWindow):
             self.runThreadLst()
 
     def runThreadLst(self):
-        l = len(self.select_detector)
-        self.parameter_lst = self.txtparameter_lst.toPlainText() # AGLAEFile.open_header_lst(self.FinalLST)
-        new_para = self.parameter_lst.split("\n")
-        # para = new_para.split(":")
-        para1 = list()
+        # myshape = np.shape(self.path_all_lst)
 
-        for obj in new_para:
-            try:
-                para = obj.split(": ")
-                if para[0] == " Map size X,Y (um)" or para[0] == ' Pixel size X,Y (um)':
-                    para =para[1].split("x")
-                    para1.append(para[0])
-                    para1.append(para[1])
-                else:
-                    para1.append (para[1])
-            except:
-                pass
+        # if myshape[0] > 1:
 
-        self.parameter_lst = para1
-        sizeX = int(self.parameter_lst[3]) / int(self.parameter_lst[5])
-        sizeY = int(self.parameter_lst[4]) / int(self.parameter_lst[6])
-        sizeX = int(sizeX)
-        sizeY = int(sizeY)
-        shape = (sizeX,sizeY,2048)
-        datapath = self.FinalLST.split(".")
-        datapath = datapath[0] + ".hdf5"
-        AGLAEFile.write_hdf5_metadata(datapath, self.parameter_lst , self.select_detector[0],datapath) # self.parameter_lst
+        for one_lst in self.all_lst_fileName:
+            
+            self.parameter_lst = AGLAEFile.open_header_lst(one_lst)
+            print ("exctract: ",one_lst)
+            # l = len(self.select_detector)
+            # self.parameter_lst = self.txtparameter_lst.toPlainText() 
+            # new_para = self.parameter_lst.split("\n")
+           
+            # para1 = list()
 
-        # 2024 Pas possible pour gros fichier LST
-        #clread = readrawlst(self.FinalLST) # LIT TOUT LE FICHIER LST
-        #rawlst = clread.extract()
+            # for obj in new_para:
+            #     try:
+            #         para = obj.split(": ")
+            #         if para[0] == " Map size X,Y (um)" or para[0] == ' Pixel size X,Y (um)':
+            #             para =para[1].split("x")
+            #             para1.append(para[0])
+            #             para1.append(para[1])
+            #         else:
+            #             para1.append (para[1])
+            #     except:
+            #         pass
+
+            # self.parameter_lst = para1
+            sizeX = int(self.parameter_lst[3]) / int(self.parameter_lst[5])
+            sizeY = int(self.parameter_lst[4]) / int(self.parameter_lst[6])
+            sizeX = int(sizeX)
+            sizeY = int(sizeY)
+            shape = (sizeX,sizeY,2048)
+            datapath = one_lst.split(".")
+            datapath = datapath[0] + ".hdf5"
+            AGLAEFile.write_hdf5_metadata(datapath, self.parameter_lst , self.select_detector[0],datapath) # self.parameter_lst
+
+            # 2024 Pas possible pour gros fichier LST
+            #clread = readrawlst(self.FinalLST) # LIT TOUT LE FICHIER LST
+            #rawlst = clread.extract()
 
 
-        self.progress.setRange(0, 100)
-        self.totalprogress = 0
-        self.setProgressVal(0)
-        self.readinglst = 1
+            self.progress.setRange(0, 100)
+            self.totalprogress = 0
+            self.setProgressVal(0)
+            self.readinglst = 1
 
-
-        #for detector in self.select_detector:
-         #   self.setProgressVal(0)
-         #   print("detector :", detector)
-            #self.ThrLST = ThreadReadLst2(path = self.FinalLST, rawlst = rawlst, para = self.parameter_lst, detector= detector)
-            #2024
-            # self.ThrLST = ThreadReadLst2(path=self.FinalLST, path_lst=self.FinalLST, para=self.parameter_lst, detector=detector)
-            ##extractor = ThreadReadLst2(path=self.FinalLST, path_lst=self.FinalLST, para=self.parameter_lst, detector=detector)
-        AGLAEFile.extract_lst_vector(path=self.FinalLST, path_lst=self.FinalLST, para=self.parameter_lst, detector=self.select_detector[0])
-        i=1
-        # self.ThrLST.valueChanged.connect(self.setProgressVal)
-            ##extractor.run()
-            #self.ThrLST.signalreadlst.connect(self.WaitReadinglst)
-            #self.ThrLST.path = self.FinalLST
-            #self.ThrLST.detector= detector
-            #self.ThrLST.rawlst = rawlst
-                        # self.ThrLST.start()
-                        # self.ThrLST.wait(100)
-                        # #self.ThrLST.join()
-            #time.sleep(1)
-            #while self.ThrLST.isFinished() == False:
-            #    print("sleep 0.1 sec.")
-            #    time.sleep(0.1)
-            #time.sleep(2)
-            # self.setProgressVal(0)
-            # print(detector)
-            # self.thread = ThreadReadLst2(path=self.FinalLST, detector="LE0")
-            # self.thread.valueChanged.connect(self.setProgressVal)
-            # self.thread.path = self.FinalLST
-            # self.thread.detector = detector
-            # self.thread.start()
-            # print("fini")
-            #self.thread.join(1)
-
-       #self.Read_Lst(self.FinalLST)
-
+            #AGLAEFile.extract_lst_vector(path=self.FinalLST, path_lst=self.FinalLST, para=self.parameter_lst, detector=self.select_detector[0])
+           
+            AGLAEFile.extract_lst_vector(path_lst=one_lst,detector=self.select_detector[0], para=self.parameter_lst) 
+            
+            i=1
+        
     def runThreadEDF(self):
         l = len(self.select_detector)
         self.parameter_lst = self.txtparameter_lst.toPlainText()  # AGLAEFile.open_header_lst(self.FinalLST)
@@ -337,9 +320,22 @@ class MainPage(QMainWindow):
 
     # self.Read_Lst(self.FinalLST)
 
+    def select_folder(self):
+        self.path_all_lst = QFileDialog.getExistingDirectory(self," Select folder with LST files",'c:\\')
+        
+                
+
+
     def select_lst(self):
-        fileName = QFileDialog.getOpenFileName(self, "Select LST to extact in HDF5", "c:/", ("LST file (*.lst)"))
-        self.FinalLST = fileName[0]
+        fileName = QFileDialog.getOpenFileNames(self, "Select LST to extact in HDF5", "c:/", ("LST file (*.lst)"),'*.lst')
+        myshape = np.shape(fileName)
+        if myshape[0] > 1:
+            self.FinalLST = fileName[0][0]    
+            self.all_lst_fileName = fileName[0]
+        else:
+            self.FinalLST = fileName[0]
+            self.all_lst_fileName = fileName[0]
+        
         head_tail = os.path.split(self.FinalLST) # Split le Path et le fichier
         #sp = self.FinalLST.split("/")
         root_text = os.path.splitext (head_tail[1]) # Split nom et ext du fichier
@@ -366,13 +362,17 @@ class MainPage(QMainWindow):
         #       filejpg = file
 
 
-        parameter = AGLAEFile.open_header_lst(fileName[0])
+        parameter = AGLAEFile.open_header_lst(self.FinalLST)
         self.parameter_lst = parameter
 
         txtparameter = " Date: {} \n Objet: {}\n Projet: {}\n".format(parameter[0], parameter[1], parameter[2])
         txtparameter =  txtparameter + " Map size X,Y (um): {} x {}\n Pixel size X,Y (um): {} x {}\n Pen size (um): {}\n".format(parameter[3], parameter[4], parameter[5], parameter[6],parameter[7])
-        txtparameter =  txtparameter + " Particule: {} \n Beam energy (keV): {} \n LE0 filter: {}\n HE1 filter: {}\n HE2 filter: {}\n" \
-                                           " HE3 filter: {}\n HE4 filter: {}\n".format(parameter[10], parameter[11], parameter[12],parameter[13], parameter[14], parameter[15], parameter[16])
+        try: 
+            txtparameter =  txtparameter + " Particule: {} \n Beam energy (keV): {} \n LE0 filter: {}\n HE1 filter: {}\n HE2 filter: {}\n" \
+                                           " HE3 filter: {}\n HE4 filter: {}\n".format(parameter[8], parameter[9], parameter[10],parameter[11], parameter[12], parameter[13], parameter[14])
+        except:
+                txtparameter =  txtparameter + " Particule: ? \n Beam energy (keV): ? \n LE0 filter: ?\n HE1 filter: ?\n HE2 filter: ?\n" \
+                                           " HE3 filter: ?\n HE4 filter: ?\n"
 
         self.txtparameter_lst.setText(txtparameter)
 
@@ -1042,10 +1042,10 @@ class ThreadReadLst2():
                             last_pos_y = np.append(last_pos_y, coord_y[-pos])
                         max_val_y_lue = np.max(last_pos_y)
 
-                        print("Y:",max_val_y_lue)
+                       
 
                         if max_val_y_lue > y_scan_total: # Contient le scan suivant
-
+                            print("Next scan Y:") #,max_val_y_lue)    
                             indice_y_last = np.where(coord_y == y_scan_total) #recherche les val de la dernier colonne
                             if len(indice_y_last[0]) < 50:
                                 fin_ligne=True
