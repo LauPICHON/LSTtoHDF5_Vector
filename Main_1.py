@@ -208,7 +208,7 @@ class MainPage(QMainWindow):
         for one_lst in self.all_lst_fileName:
             
             self.parameter_lst = AGLAEFile.open_header_lst(one_lst)
-            print ("exctract: ",one_lst)
+            print ("\nexctract: ",one_lst)
             # l = len(self.select_detector)
             # self.parameter_lst = self.txtparameter_lst.toPlainText() 
             # new_para = self.parameter_lst.split("\n")
@@ -228,30 +228,37 @@ class MainPage(QMainWindow):
             #         pass
 
             # self.parameter_lst = para1
-            sizeX = int(self.parameter_lst[3]) / int(self.parameter_lst[5])
-            sizeY = int(self.parameter_lst[4]) / int(self.parameter_lst[6])
-            sizeX = int(sizeX)
-            sizeY = int(sizeY)
-            shape = (sizeX,sizeY,2048)
-            datapath = one_lst.split(".")
-            datapath = datapath[0] + ".hdf5"
-            AGLAEFile.write_hdf5_metadata(datapath, self.parameter_lst , self.select_detector[0],datapath) # self.parameter_lst
+            taille_map_x=self.parameter_lst[3]
+            taille_map_y=self.parameter_lst[4]
+            if taille_map_x !='0' and taille_map_y!='0':
+                sizeX = int(self.parameter_lst[3]) / int(self.parameter_lst[5])
+                sizeY = int(self.parameter_lst[4]) / int(self.parameter_lst[6])
+                sizeX = int(sizeX)
+                sizeY = int(sizeY)
+                shape = (sizeX,sizeY,2048)
+                datapath = one_lst.split(".")
+                datapath = datapath[0] + ".hdf5"
+                AGLAEFile.write_hdf5_metadata(datapath, self.parameter_lst , self.select_detector[0],datapath) # self.parameter_lst
 
-            # 2024 Pas possible pour gros fichier LST
-            #clread = readrawlst(self.FinalLST) # LIT TOUT LE FICHIER LST
-            #rawlst = clread.extract()
+                # 2024 Pas possible pour gros fichier LST
+                #clread = readrawlst(self.FinalLST) # LIT TOUT LE FICHIER LST
+                #rawlst = clread.extract()
 
 
-            self.progress.setRange(0, 100)
-            self.totalprogress = 0
-            self.setProgressVal(0)
-            self.readinglst = 1
+                self.progress.setRange(0, 100)
+                self.totalprogress = 0
+                self.setProgressVal(0)
+                self.readinglst = 1
 
-            #AGLAEFile.extract_lst_vector(path=self.FinalLST, path_lst=self.FinalLST, para=self.parameter_lst, detector=self.select_detector[0])
-           
-            AGLAEFile.extract_lst_vector(path_lst=one_lst,detector=self.select_detector[0], para=self.parameter_lst) 
+                #AGLAEFile.extract_lst_vector(path=self.FinalLST, path_lst=self.FinalLST, para=self.parameter_lst, detector=self.select_detector[0])
             
-            i=1
+                try:
+                    AGLAEFile.extract_lst_vector(path_lst=one_lst,detector=self.select_detector[0], para=self.parameter_lst) 
+                except:
+                    print("Extraction error :", {one_lst})
+                
+                i=1
+            print("Conversion Finished")
         
     def runThreadEDF(self):
         l = len(self.select_detector)
