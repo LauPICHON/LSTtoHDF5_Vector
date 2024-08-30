@@ -209,25 +209,7 @@ class MainPage(QMainWindow):
             
             self.parameter_lst = AGLAEFile.open_header_lst(one_lst)
             print ("\nexctract: ",one_lst)
-            # l = len(self.select_detector)
-            # self.parameter_lst = self.txtparameter_lst.toPlainText() 
-            # new_para = self.parameter_lst.split("\n")
-           
-            # para1 = list()
-
-            # for obj in new_para:
-            #     try:
-            #         para = obj.split(": ")
-            #         if para[0] == " Map size X,Y (um)" or para[0] == ' Pixel size X,Y (um)':
-            #             para =para[1].split("x")
-            #             para1.append(para[0])
-            #             para1.append(para[1])
-            #         else:
-            #             para1.append (para[1])
-            #     except:
-            #         pass
-
-            # self.parameter_lst = para1
+          
             taille_map_x=self.parameter_lst[3]
             taille_map_y=self.parameter_lst[4]
             if taille_map_x !='0' and taille_map_y!='0':
@@ -252,10 +234,10 @@ class MainPage(QMainWindow):
 
                 #AGLAEFile.extract_lst_vector(path=self.FinalLST, path_lst=self.FinalLST, para=self.parameter_lst, detector=self.select_detector[0])
             
-                try:
-                    AGLAEFile.extract_lst_vector(path_lst=one_lst,detector=self.select_detector[0], para=self.parameter_lst) 
-                except:
-                    print("Extraction error :", {one_lst})
+                #try:
+                AGLAEFile.extract_lst_vector(path_lst=one_lst,detector=self.select_detector[0], para=self.parameter_lst) 
+                #except:
+                #    print("Extraction error :", {one_lst})
                 
                 i=1
             print("Conversion Finished")
