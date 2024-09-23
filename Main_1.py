@@ -201,10 +201,7 @@ class MainPage(QMainWindow):
             self.runThreadLst()
 
     def runThreadLst(self):
-        # myshape = np.shape(self.path_all_lst)
-
-        # if myshape[0] > 1:
-
+       
         for one_lst in self.all_lst_fileName:
             
             self.parameter_lst = AGLAEFile.open_header_lst(one_lst)
@@ -235,7 +232,7 @@ class MainPage(QMainWindow):
                 #AGLAEFile.extract_lst_vector(path=self.FinalLST, path_lst=self.FinalLST, para=self.parameter_lst, detector=self.select_detector[0])
             
                 #try:
-                AGLAEFile.extract_lst_vector(path_lst=one_lst,detector=self.select_detector[0], para=self.parameter_lst) 
+                AGLAEFile.extract_lst_vector(path_lst=one_lst,detector=self.select_detector[0], para=self.parameter_lst,ADC_X = 8, ADC_Y = 9)
                 #except:
                 #    print("Extraction error :", {one_lst})
                 
