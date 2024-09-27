@@ -168,6 +168,7 @@ class MainPage(QMainWindow):
             self.progress.setValue(val)
 
     def RunConvert(self):
+        
         if self.EDFasFile:
             self.parameter_lst = self.txtparameter_lst.toPlainText()
             i=0
