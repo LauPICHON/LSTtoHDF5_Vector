@@ -1,3 +1,33 @@
+#/*##########################################################################
+#
+# The AGLAE conversion functions
+#
+# Copyright (c) 2025 C2RMF
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+#############################################################################*/
+__author__ = "Laurent Pichon - C2RMF"
+__contact__ = "laurent.pichon@culture.gouv.fr"
+__license__ = "MIT"
+__copyright__ = "Centre de Recherche et de Restauration des Musées de France, Paris, France"
+
 import os, time, pathlib , fnmatch
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5 import QtWidgets
@@ -6,7 +36,7 @@ from PyQt5.uic import loadUi
 #from TestGUI import *
 import win32api
 #from IO_Fonction import AGLAEFile
-from PyPIX_IO.IO_Fonction_Thread import AGLAEFile
+from PyPIX_IO.IO_Fonction_Thread import AGLAEfunction
 import numpy as np
 import h5py
 from time import perf_counter
@@ -47,23 +77,10 @@ class MainPage(QMainWindow):
         self.button1 = self.findChild(QtWidgets.QPushButton, 'SelectFile_EDF')
         self.button1.clicked.connect(self.select_file)
         self.filename_edf = self.findChild(QtWidgets.QTextEdit, 'textEdit_EDF')
-
-        # self.CheckBoxLE0.stateChanged.connect(self.Check_LE0)
-        # self.CheckBoxHE1.stateChanged.connect(self.Check_HE1)
-        # self.CheckBoxHE2.stateChanged.connect(self.Check_HE2)
-        # self.CheckBoxHE3.stateChanged.connect(self.Check_HE3)
-        # self.CheckBoxHE4.stateChanged.connect(self.Check_HE4)
-        # self.CheckBoxHE10.stateChanged.connect(self.Check_HE10)
-        # self.CheckBoxHE11.stateChanged.connect(self.Check_HE11)
-        # self.CheckBoxHE12.stateChanged.connect(self.Check_HE12)
-        # self.CheckBoxHE13.stateChanged.connect(self.Check_HE13)
-        # self.CheckBoxRBS150.stateChanged.connect(self.Check_RBS150)
-        # self.CheckBoxGAMMA70.stateChanged.connect(self.Check_GAMMA70)
         self.run1 = self.findChild(QtWidgets.QPushButton, 'pushButton_run')
         self.run1.clicked.connect(self.RunConvert)
-        self.progress = self.findChild(QtWidgets.QProgressBar, 'progressBar')
-        self.progress.setValue(2)
-
+        self.MyprogressBar = self.findChild(QtWidgets.QProgressBar, 'progressBar')
+        self.MyprogressBar.setValue(2)
         drives = win32api.GetLogicalDriveStrings()
         drives = drives.split('\000')[:-1]
         self.comboBox.addItems(drives)
@@ -162,10 +179,10 @@ class MainPage(QMainWindow):
     def setProgressVal(self, val):
 
         if val >= self.totalprogress:
-            self.progress.setValue(val)
+            self.MyprogressBar.setValue(val)
             self.totalprogress = val
         elif val == 0:
-            self.progress.setValue(val)
+            self.MyprogressBar.setValue(val)
 
     def RunConvert(self):
         
@@ -176,8 +193,8 @@ class MainPage(QMainWindow):
                 head_tail = os.path.split(self.FinalEDF)
                # AGLAEFile.finalhdf5(self.FinalEDF, root_edftype)
                 if i == 0:
-                    Final_HDF = AGLAEFile.finalhdf5(self.FinalEDF, root_edftype)
-                    AGLAEFile.write_hdf5_metadata(self.FinalEDF, self.parameter_edf, root_edftype,Final_HDF)  # self.parameter_lst
+                    Final_HDF = AGLAEfunction.finalhdf5(self.FinalEDF, root_edftype)
+                    AGLAEfunction.write_hdf5_metadata(self.FinalEDF, self.parameter_edf, root_edftype,Final_HDF)  # self.parameter_lst
 
                 #AGLAEFile.write_hdf5_metadata(edfpath, parameter, detname)  # self.parameter_lst
 
@@ -186,7 +203,7 @@ class MainPage(QMainWindow):
                 for file in os.listdir(head_tail[0]):
                     if fnmatch.fnmatch(file, root_edftype + '*_0000' + '.edf'):
                         edffile = file #self.list_file.append(file)
-                        AGLAEFile.edf_To_hdf5(os.path.join(self.pathfolder, edffile), root_edftype, self.parameter_lst,
+                        AGLAEfunction.edf_To_hdf5(os.path.join(self.pathfolder, edffile), root_edftype, self.parameter_lst,
                                               Final_HDF,i)
                         i += 1
                         break
@@ -194,41 +211,56 @@ class MainPage(QMainWindow):
 
                 #'EDFStack.loadIndexedStack(self.FinalEDF)
         else:
-            self.runThreadLst()
+            self.runLst2hdf5()
 
-    def runThreadLst(self):
-       
-        for one_lst in self.all_lst_fileName:
+    def runLst2hdf5(self):
+        total_files = len(self.all_lst_fileName)
+        _progess_val_start = 0
+        _progess_val = 0
+        self.MyprogressBar.setRange(0, 100)
+        self.MyprogressBar.setValue(0)
+        for i,one_lst in enumerate(self.all_lst_fileName, start=1):
             
-            self.parameter_lst = AGLAEFile.open_header_lst(one_lst)
+            #self.parameter_lst = AGLAEfunction.open_header_lst(one_lst)
+            _dict_adc_metadata_arr,_dict_metadata_global = AGLAEfunction.open_header_lst(one_lst)
             print ("\nexctract: ",one_lst)
           
-            taille_map_x=self.parameter_lst[3]
-            taille_map_y=self.parameter_lst[4]
+            taille_map_x=_dict_metadata_global["map size x (um)"]
+            taille_map_y=_dict_metadata_global["map size y (um)"]
             if taille_map_x !='0' and taille_map_y!='0':
-                sizeX = int(self.parameter_lst[3]) / int(self.parameter_lst[5])
-                sizeY = int(self.parameter_lst[4]) / int(self.parameter_lst[6])
-                sizeX = int(sizeX)
-                sizeY = int(sizeY)
-                shape = (sizeX,sizeY,2048)
+                # sizeX = int(_dict_metadata_global["Map size X (um)"]) / int(_dict_metadata_global["Pixel size X (um)"])
+                # sizeY = int(_dict_metadata_global["Map size Y (um)"]) / int(_dict_metadata_global["Pixel size Y (um)"])
+                # sizeX = int(sizeX)
+                # sizeY = int(sizeY)
+                # shape = (sizeX,sizeY,2048)
                 datapath = one_lst.split(".")
                 datapath = datapath[0] + ".hdf5"
-                AGLAEFile.write_hdf5_metadata(datapath, self.parameter_lst , self.select_detector[0],datapath) # self.parameter_lst
+                AGLAEfunction.write_hdf5_metadata(datapath, self.parameter_lst , self.select_detector[0],datapath) # self.parameter_lst
 
                 # 2024 Pas possible pour gros fichier LST
                 #clread = readrawlst(self.FinalLST) # LIT TOUT LE FICHIER LST
                 #rawlst = clread.extract()
 
 
-                self.progress.setRange(0, 100)
-                self.totalprogress = 0
-                self.setProgressVal(0)
+                # self.MyprogressBar.setRange(0, 100)
+                # self.MyprogressBar.setValue(0)
+                # self.totalprogress = 0
+                # self.setProgressVal(0)
                 self.readinglst = 1
 
                 #AGLAEFile.extract_lst_vector(path=self.FinalLST, path_lst=self.FinalLST, para=self.parameter_lst, detector=self.select_detector[0])
             
                 #try:
-                AGLAEFile.extract_lst_vector(path_lst=one_lst,detector=self.select_detector[0], para=self.parameter_lst,ADC_X = 8, ADC_Y = 9)
+               # AGLAEfunction.extract_lst_vector(path_lst=one_lst,detector=self.select_detector[0], para=self.parameter_lst,ADC_X = 8, ADC_Y = 9)
+                _progess_val = 100/total_files
+                # if i > 1:
+                #     _progess_val_start = self.progress.Value()
+                # else:
+                #     _progess_val_start = 0
+
+                AGLAEfunction.extract_lst_vector(self.MyprogressBar,one_lst, _dict_metadata_global, _dict_adc_metadata_arr,_progess_val)
+                f =i*(100/total_files)
+                self.MyprogressBar.setValue(int(f))
                 #except:
                 #    print("Extraction error :", {one_lst})
                 
@@ -266,7 +298,7 @@ class MainPage(QMainWindow):
         clread = readrawlst(self.FinalEDF)  # LIT TOUT LE FICHIER LST
         rawlst = clread.extract()
 
-        self.progress.setRange(0, 100)
+        self.MyprogressBar.setRange(0, 100)
         self.totalprogress = 0
         self.setProgressVal(0)
         self.readinglst = 1
@@ -309,15 +341,20 @@ class MainPage(QMainWindow):
 
 
     def select_lst(self):
-        fileName = QFileDialog.getOpenFileNames(self, "Select LST to extact in HDF5", "c:/", ("LST file (*.lst)"),'*.lst')
-        myshape = np.shape(fileName)
-        if myshape[0] > 1:
+        fileName,_ = QFileDialog.getOpenFileNames(self, "Select LST to extact in HDF5", "c:/", ("LST file (*.lst)"),'*.lst')
+        #myshape = np.shape(fileName)
+
+        if len(fileName) == 1: # and myshape[0] > 1:
             self.FinalLST = fileName[0][0]    
             self.all_lst_fileName = fileName[0]
         else:
             self.FinalLST = fileName[0]
             self.all_lst_fileName = fileName[0]
         
+        self.FinalLST = fileName[0]
+        self.all_lst_fileName = fileName
+        
+
         head_tail = os.path.split(self.FinalLST) # Split le Path et le fichier
         #sp = self.FinalLST.split("/")
         root_text = os.path.splitext (head_tail[1]) # Split nom et ext du fichier
@@ -344,7 +381,7 @@ class MainPage(QMainWindow):
         #       filejpg = file
 
 
-        parameter = AGLAEFile.open_header_lst(self.FinalLST)
+        parameter = AGLAEfunction.open_header_lst_simple(self.FinalLST)
         self.parameter_lst = parameter
 
         txtparameter = " Date: {} \n Objet: {}\n Projet: {}\n".format(parameter[0], parameter[1], parameter[2])
@@ -357,8 +394,6 @@ class MainPage(QMainWindow):
                                            " HE3 filter: ?\n HE4 filter: ?\n"
 
         self.txtparameter_lst.setText(txtparameter)
-
-
 
     def select_file(self):
         fileName = QFileDialog.getOpenFileName(self, "Select EDF to convert in HDF5", "c:/", ("EDF file (*.edf)"))
@@ -421,32 +456,12 @@ class MainPage(QMainWindow):
                     self.list_file.append(file)
                     nbedf += 1
 
-        # if nbedf > 1:
-        #     for file in self.list_file:
-        #         d = self.list_file[0]
-        #         if file is not d:
-        #            sp = file.split("_")
-        #            for i in range(len(sp)):
-        #                sp0 = d.split("_")
-        #                if sp[i] != sp0[i]:
-        #                    if len(self.detlist) == 0: self.detlist.append(sp0[i])
-        #                    self.detlist.append(sp[i])
-        # else:
-        #     sp0 = head_tail[1].split("_")
-        #     if len(sp0) > 5: self.detlist.append(sp0[5])
+      
         currentDirectory = pathlib.Path(head_tail[0])
-        # define the pattern
-        #if len(sp) > 1:
-        #    currentPattern = sp[0] + "_" + sp[1] + "*.jpg"  # nouveau nom 20200308_0048_OBJ_PRJ_IBA.lst
-        #else:
-        #    currentPattern = sp[0] + "*.jpg"  # ancien nom "26jul008.lst"
-         #   for currentFile in currentDirectory.glob(
-         #           currentPattern):  # Recherche si une image jpg à le même nom que le LST
-         #       filejpg = currentFile
         if len(self.list_file[0]) == 0:
             self.list_file.append(fileName[0])
 
-        parameter = AGLAEFile.open_header_edf(self.FinalEDF) #os.path.join(head_tail[0] , self.list_file[0])
+        parameter = AGLAEfunction.open_header_edf(self.FinalEDF) #os.path.join(head_tail[0] , self.list_file[0])
         self.parameter_edf = parameter
 
         if len(parameter) == 21:
@@ -1169,7 +1184,7 @@ class ThreadReadLst2():
                     adc2read = num_line_adc + 1
                     self.detector = ret_adc_name(num_line_adc)
                     data = cube_one_pass[num_line_adc]
-                    AGLAEFile.feed_hdf5_map (data, self.path, self.detector, "FinalHDF", adc2read,sizeX,sizeY,nbcanaux)
+                    AGLAEfunction.feed_hdf5_map (data, self.path, self.detector, "FinalHDF", adc2read,sizeX,sizeY,nbcanaux)
 
 
 
@@ -1209,179 +1224,7 @@ class ThreadReadLst2():
             # self.valueChanged.emit(0)
             print("emit 0")
 
-    #             # non_zero_value = [int(index) for count in v[0][:] if np.nonzero]
-    #             #
-    #             # for a_index in x8:
-    #             #     nb1=0
-    #             #     adc_word = a[a_index]
-    #             #     adcnum = []
-    #             #     tab1 = [1,2,4,8,16,32,64,128,256,512,1024,2048]
-    #             #
-    #             #     for bits in range(16):
-    #             #         if adc_word & (0b0000000000000001 << bits):
-    #             #             adcnum.append(2**bits)
-    #             #             nb1=nb1+1
-    #             #
-    #             #     tab_nb_byte.append(nb1)
-    #             #     ind = a_index -len(adcnum)
-    #             #
-    #             # Tps_final = perf_counter() - t0
-    #             #
-    #             # for num_adc in adcnum:
-    #             #
-    #             #     if num_adc == adc2read:
-    #             #         val1 = a[ind]
-    #             #         c = val1 & 2047
-    #             #         ind+=1
-    #             #     elif num_adc == FastcomtecX:
-    #             #         val1 = a[ind]
-    #             #         val = val1 & 2047
-    #             #         nrows = val
-    #             #         ind += 1
-    #             #
-    #             #     elif num_adc == FastcomtecY:
-    #             #         val1 = a[ind]
-    #             #         val = val1 & 2047
-    #             #         ncolumns = val
-    #             #         ind += 1
-    #             #
-    #             # if (c < nbcanaux) & (nrows < sizeX) & (ncolumns < sizeY):
-    #             #        cube[nrows, ncolumns, c] += 1
-    #             #        nb_count += 1
-    #             #     #for val in adcnum:
-    #             #
-    #             #
-    #             #
-    #             #
-    #             # #for val_adc in x6 == adc2read:
-    #             # Tps_final  = perf_counter() - t0
-    #             #
-    #             # lstcontent_global = file_lst.read(nb_byte_to_read)
-    #             # arr_lst = np.array(lstcontent_global,int)
-    #             # print(arr_lst[1])
-    #             # x1 = np.where(arr_lst == 0x80)
-    #             #
-    #             # indice_in_datablock = 0
-    #             # nrows = 0
-    #             # ncolumns = 0
-    #             # print(sizeY)
-    #             # print(sizeX)
-    #             #
-    #             # print("adc2read:", adc2read)
-    #             #
-    #             # switch_xy = 0
-    #             # nb_count = 0
-    #             # indice_in_datablock = 0
-    #             #
-    #             # #while ind1 < len(file_lst) - len(tmpheader) - 20:
-    #             #
-    #             # while indice_in_datablock < nb_byte_to_read :
-    #             #     #if not val:
-    #             #         # eof
-    #             #      #   break
-    #             #
-    #             #     try:
-    #             #         lstcontent = lstcontent_global[indice_in_datablock:indice_in_datablock + 4]
-    #             #         indice_in_datablock += 4
-    #             #
-    #             #         # val = file_lst.read(4)
-    #             #         val = lstcontent #lstcontent[ind1:ind1 + 4]
-    #             #
-    #             #     except:
-    #             #         val = b'\xff\xff\xff\xff'
-    #             #         break
-    #             #         # QtCore.QCoreApplication.processEvents()
-    #             #         # MainPage.progress.setValue(ind1)
-    #             #
-    #             #     if val == b'\xff\xff\xff\xff':
-    #             #         # val = file_lst.read(4)
-    #             #         val = lstcontent_global[indice_in_datablock:indice_in_datablock + 4] # Read 4 Bytes in LST file  before (lstcontent[ind1:ind1 + 4])
-    #             #         indice_in_datablock += 4
-    #             #         text = "Events"
-    #             #         #print(int(100/len(lstcontent)*ind1)+1)
-    #             #
-    #             #         #time.sleep(1)
-    #             #
-    #             #     val3 = int.from_bytes(val, byteorder='little', signed=False)
-    #             #     low1 = val3 & 0xFFFF
-    #             #     hight1 = int(val3 >> 16)
-    #             #
-    #             #     if indice_in_datablock % (nb_byte_to_read/10) < 10:
-    #             #         self.valueChanged.emit(int(100 *((nb_read_total+indice_in_datablock) /size_lst)))
-    #             #         #self.signalreadlst.emit(0)
-    #             #
-    #             #     if 0x4000 == hight1:
-    #             #         text = "Valeur tempo"
-    #             #         tempo = low1
-    #             #
-    #             #     if 0xFFFF == low1:
-    #             #         text = "Valeur channel"
-    #             #         channel = hight1
-    #             #
-    #             #     if 0x8000 == hight1:
-    #             #         text = "TAG ADC"
-    #             #         adc = low1
-    #             #
-    #             #         readval = False
-    #             #         adcnum = []
-    #             #         channel_num = []
-    #             #
-    #             #         if adc & adc2read:
-    #             #             readval = True # ADC en cours est un detector demandé
-    #             #         else:
-    #             #             readval = False
-    #             #
-    #             #         for bits in range(16):
-    #             #             if adc & (0b0000000000000001 << bits):
-    #             #                 adcnum.append(bits)
-    #             #
-    #             #         if len(adcnum) % 2 == 1:  # & len(adcnum) > 1:
-    #             #             # toto = file_lst.read(2) #Nb paire ADC !!
-    #             #             #val = lstcontent[indice_in_datablock:indice_in_datablock + 2] #Read 2 bytes in LST File #lstcontent[ind1:ind1 + 2]
-    #             #             indice_in_datablock += 2
-    #             #
-    #             #         if readval == True:
-    #             #             for f in adcnum:
-    #             #
-    #             #                     val = lstcontent_global[indice_in_datablock:indice_in_datablock + 2] #Read 2 bytes in LST File    # lstcontent[ind1:ind1 + 2]
-    #             #
-    #             #                     if f != FastcomtecX and f != FastcomtecY:
-    #             #                         val1 = int.from_bytes(val, byteorder='little', signed=False)
-    #             #                         val = val1&(nbcanaux-1)  #Opération logique binaire pour enlever les bits de poids fort-1)
-    #             #                         channel_num.append(val) #int.from_bytes(val, byteorder='little', signed=False))
-    #             #                     if f == FastcomtecX:
-    #             #                         val1 = int.from_bytes(val, byteorder='little', signed=False)
-    #             #                         val = val1&2047
-    #             #                         nrows = val #int.from_bytes(val, byteorder='little', signed=False)  # Valeur X
-    #             #                     if f == FastcomtecY:
-    #             #                         val1 = int.from_bytes(val, byteorder='little', signed=False)
-    #             #                         val = val1&2047
-    #             #                         ncolumns = val #int.from_bytes(val1, byteorder='little', signed=False)
-    #             #                     indice_in_datablock += 2
-    #             #
-    #             #                     if ncolumns == 0 and indice_in_datablock < 10000:
-    #             #                         switch_xy += 1
-    #             #                         if switch_xy > 1000:  # Change les num. de voies FastComtec vers X = 4 et Y = 5 (ancien LST)
-    #             #                             print("Switch XY FastXomtec")
-    #             #                             FastcomtecX = 4
-    #             #                             FastcomtecY = 5
-    #             #                             indice_in_datablock = 0
-    #             #                             switch_xy = 0
-    #             #                             cube[0, 0, :] = 0
-    #             #                     else:
-    #             #                         switch_xy = 0
-    #             #         else:
-    #             #             indice_in_datablock =indice_in_datablock + len(adcnum)*2 #file_lst.seek(len(adcnum)*2, 1)  #val = file_lst.read(2)
-    #             #
-    #             #         # if readval == False:
-    #             #         #     ind1 += 4 * len(adcnum)
-    #             #
-    #             #         for c in channel_num:
-    #             #             if (c < nbcanaux) & (nrows < sizeX) & (ncolumns < sizeY):
-    #             #                 cube[nrows, ncolumns, c] += 1
-    #             #                 nb_count += 1
-    #             #
-
+   
 
 
 class MultiThreadReadLst():
@@ -1536,7 +1379,7 @@ class MultiThreadReadLst():
         self.valueChanged.emit(100)
 
         print("nb events : ", nb_count)
-        AGLAEFile.write_hdf5(cube, self.path, self.detector)
+        AGLAEfunction.write_hdf5(cube, self.path, self.detector)
         self.valueChanged.emit(0)
         print("emit 0")
 

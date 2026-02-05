@@ -1,0 +1,5 @@
+1 - Lancer cmd en administrateur
+2 - pyinstaller Main_1.py -F
+--add-data="pathvers.ui;." --windowed 
+
+pyinstaller --onefile --add-data="GUI_LSTToHDF5_vector_2024.ui;." --add-data="config_adc.ini;."  --windowed Main_1.py

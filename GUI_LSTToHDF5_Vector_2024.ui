@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>825</width>
-    <height>294</height>
+    <height>223</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -87,7 +87,7 @@
       <x>570</x>
       <y>10</y>
       <width>231</width>
-      <height>231</height>
+      <height>156</height>
      </rect>
     </property>
    </widget>
@@ -131,7 +131,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>140</y>
+      <y>125</y>
       <width>466</width>
       <height>23</height>
      </rect>
@@ -143,14 +143,14 @@
    <widget class="QPushButton" name="SelectFile_EDF">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>170</y>
-      <width>75</width>
-      <height>23</height>
+      <x>10</x>
+      <y>90</y>
+      <width>96</width>
+      <height>26</height>
      </rect>
     </property>
     <property name="text">
-     <string>Select EDF</string>
+     <string>Select one EDF</string>
     </property>
    </widget>
    <widget class="QTextEdit" name="textEdit_EDF">
@@ -177,14 +177,14 @@
    <widget class="QPushButton" name="SelectFolder">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>205</y>
+      <x>10</x>
+      <y>55</y>
       <width>96</width>
       <height>26</height>
      </rect>
     </property>
     <property name="text">
-     <string>Select folder</string>
+     <string>Select LST folder</string>
     </property>
    </widget>
    <widget class="QTextEdit" name="Path_LST">
@@ -215,7 +215,7 @@
      <x>0</x>
      <y>0</y>
      <width>825</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
   </widget>
