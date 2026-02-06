@@ -4,4 +4,5 @@ Two MPA-3 channel must contained the analyse position (X,Y). the MPA-3 system mu
 This code is used to retreive from the data stream each event and its corresponding position to generate the data cube of each detector channel.
 
 
-The configuration file "config_adc.ini" enable to set MPA channel 
+The configuration file "config_lst2hdf5.ini" enable to set MPA channel and mpawin channels to extracted.
+
