@@ -41,6 +41,7 @@ import numpy as np
 import h5py
 from time import perf_counter
 from Hdf5Utils import *
+from concurrent.futures import ProcessPoolExecutor
 
 import matplotlib.pyplot as plt
 
@@ -60,6 +61,7 @@ class MyThread(QThread):
             cnt += 1
             time.sleep(0.3)
             self.valueChanged.emit(cnt)
+
 
 class MainPage(QMainWindow):
 
@@ -213,57 +215,45 @@ class MainPage(QMainWindow):
         else:
             self.runLst2hdf5()
 
+    # def multi_process_lst2hdf5(self,one_lst):
+    #         _dict_adc_metadata_arr, _dict_metadata_global = AGLAEfunction.open_header_lst(one_lst)
+    #         AGLAEfunction.extract_lst_vector(self.MyprogressBar,one_lst, _dict_metadata_global, _dict_adc_metadata_arr,_progess_val)
+        
+
     def runLst2hdf5(self):
         total_files = len(self.all_lst_fileName)
         _progess_val_start = 0
         _progess_val = 0
         self.MyprogressBar.setRange(0, 100)
         self.MyprogressBar.setValue(0)
+        
         for i,one_lst in enumerate(self.all_lst_fileName, start=1):
-            
-            #self.parameter_lst = AGLAEfunction.open_header_lst(one_lst)
             _dict_adc_metadata_arr,_dict_metadata_global = AGLAEfunction.open_header_lst(one_lst)
             print ("\nexctract: ",one_lst)
-          
+            taille_file = 0 
             taille_map_x=_dict_metadata_global["map size x (um)"]
             taille_map_y=_dict_metadata_global["map size y (um)"]
-            if taille_map_x !='0' and taille_map_y!='0':
-                # sizeX = int(_dict_metadata_global["Map size X (um)"]) / int(_dict_metadata_global["Pixel size X (um)"])
-                # sizeY = int(_dict_metadata_global["Map size Y (um)"]) / int(_dict_metadata_global["Pixel size Y (um)"])
-                # sizeX = int(sizeX)
-                # sizeY = int(sizeY)
-                # shape = (sizeX,sizeY,2048)
+            taille_file = os.path.getsize(one_lst)
+
+            min_file_size = 2000000
+            if int(taille_map_x) >=1000 and int(taille_map_y) >=1000:
+                min_file_size = 2000000
+            elif int(taille_map_x) <1000 and int(taille_map_y) <1000:
+                min_file_size = 1000000
+
+            
+            if taille_map_x !='0' and taille_map_y!='0' and taille_file > min_file_size:
                 datapath = one_lst.split(".")
                 datapath = datapath[0] + ".hdf5"
-                AGLAEfunction.write_hdf5_metadata(datapath, self.parameter_lst , self.select_detector[0],datapath) # self.parameter_lst
-
-                # 2024 Pas possible pour gros fichier LST
-                #clread = readrawlst(self.FinalLST) # LIT TOUT LE FICHIER LST
-                #rawlst = clread.extract()
-
-
-                # self.MyprogressBar.setRange(0, 100)
-                # self.MyprogressBar.setValue(0)
-                # self.totalprogress = 0
-                # self.setProgressVal(0)
+                # AGLAEfunction.write_hdf5_metadata(datapath, self.parameter_lst , self.select_detector[0],datapath) # self.parameter_lst
+                AGLAEfunction.write_hdf5_metadata(one_lst,_dict_metadata_global) # self.parameter_lst
                 self.readinglst = 1
-
-                #AGLAEFile.extract_lst_vector(path=self.FinalLST, path_lst=self.FinalLST, para=self.parameter_lst, detector=self.select_detector[0])
-            
-                #try:
-               # AGLAEfunction.extract_lst_vector(path_lst=one_lst,detector=self.select_detector[0], para=self.parameter_lst,ADC_X = 8, ADC_Y = 9)
+                
                 _progess_val = 100/total_files
-                # if i > 1:
-                #     _progess_val_start = self.progress.Value()
-                # else:
-                #     _progess_val_start = 0
 
                 AGLAEfunction.extract_lst_vector(self.MyprogressBar,one_lst, _dict_metadata_global, _dict_adc_metadata_arr,_progess_val)
                 f =i*(100/total_files)
                 self.MyprogressBar.setValue(int(f))
-                #except:
-                #    print("Extraction error :", {one_lst})
-                
                 i=1
             print("Conversion Finished")
         
